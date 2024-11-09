@@ -1,32 +1,122 @@
+import React, { useState, useRef } from 'react';
+import { View, Text, Button, FlatList, StyleSheet } from 'react-native';
 
-import { ListItem, Avatar  } from "@react-native-material/core";
-import { Image, StyleSheet, Platform } from 'react-native';
-import Ionicons from '@expo/vector-icons/Ionicons';
+type Registro = {
+  id: string;
+  tiempo: string;
+};
 
-import { HelloWave } from '@/components/HelloWave';
-import ParallaxScrollView from '@/components/ParallaxScrollView';
-import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
+export default function CronometroScreen() {
+  const [isRunning, setIsRunning] = useState(false);
+  const [time, setTime] = useState(0);
+  const [registros, setRegistros] = useState<Registro[]>([]);
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
-export default function RegistroScreen() {
+  const startTimer = () => {
+    if (!isRunning) {
+      setIsRunning(true);
+      intervalRef.current = setInterval(() => {
+        setTime((prevTime) => prevTime + 1);
+      }, 1000);
+    }
+  };
+
+  const stopTimer = () => {
+    if (isRunning) {
+      setIsRunning(false);
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
+      const tiempoFormateado = formatTime(time);
+      setRegistros([...registros, { id: Date.now().toString(), tiempo: tiempoFormateado }]);
+    }
+  };
+
+  const resetTimer = () => {
+    setTime(0);
+    if (isRunning) {
+      stopTimer();
+    }
+  };
+
+  const formatTime = (seconds: number) => {
+    const hrs = Math.floor(seconds / 3600);
+    const mins = Math.floor((seconds % 3600) / 60);
+    const secs = seconds % 60;
+    return `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  const renderRegistro = ({ item }: { item: Registro }) => (
+    <View style={styles.registro}>
+      <Text style={styles.registroText}>Registro: {item.tiempo}</Text>
+    </View>
+  );
+
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#D0D0D0', dark: '#353636' }}
-      headerImage={<Ionicons size={310} name="code-slash" style={styles.headerImage} />}>
-      
-    </ParallaxScrollView>
+    <View style={styles.container}>
+      <Text style={styles.title}>Registro</Text>
+      <Text style={styles.time}>{formatTime(time)}</Text>
+
+      <View style={styles.buttonsContainer}>
+        <Button title={isRunning ? 'Pausar' : 'Iniciar'} onPress={isRunning ? stopTimer : startTimer} />
+        <Button title="Reiniciar" onPress={resetTimer} />
+      </View>
+
+      <Text style={styles.subTitle}>Registros</Text>
+      <FlatList
+        data={registros}
+        renderItem={renderRegistro}
+        keyExtractor={(item) => item.id}
+        contentContainerStyle={styles.registrosList}
+      />
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  headerImage: {
-    color: '#808080',
-    bottom: -90,
-    left: -35,
-    position: 'absolute',
+  container: {
+    flex: 1,
+    paddingTop: 50,
+    paddingHorizontal: 16,
+    backgroundColor: '#f4f4f4',
+    alignItems: 'center',
   },
-  titleContainer: {
+  title: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 20,
+  },
+  time: {
+    fontSize: 48,
+    fontWeight: 'bold',
+    marginBottom: 20,
+  },
+  buttonsContainer: {
     flexDirection: 'row',
-    gap: 8,
+    justifyContent: 'space-around',
+    width: '100%',
+    marginBottom: 20,
+  },
+  subTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginTop: 20,
+    marginBottom: 10,
+  },
+  registrosList: {
+    paddingBottom: 20,
+  },
+  registro: {
+    padding: 10,
+    marginVertical: 5,
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 8,
+    backgroundColor: '#fff',
+    width: '100%',
+    alignItems: 'center',
+  },
+  registroText: {
+    fontSize: 16,
   },
 });
