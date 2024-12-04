@@ -1,89 +1,76 @@
 import React, { useState } from 'react';
-import { FlatList, Text, View, StyleSheet, Switch } from 'react-native';
+import { View, Text, StyleSheet, Switch, Button, Alert } from 'react-native';
 
-type Registro = {
-  id: string;
-  nombre: string;
-  edad: number;
-  color: string;
-  completado: boolean;
-};
+// Interfaz de configuración
+const SettingsScreen = () => {
+  const [notifications, setNotifications] = useState(true);
+  const [darkMode, setDarkMode] = useState(false);
+  const [language, setLanguage] = useState('es');
 
-export default function App() {
-  const [registros, setRegistros] = useState<Registro[]>([
-    { id: '1', nombre: 'Juan Pérez', edad: 30, color: '#FF6347', completado: false },
-    { id: '2', nombre: 'Ana Gómez', edad: 25, color: '#4CAF50', completado: false },
-    { id: '3', nombre: 'Carlos Rodríguez', edad: 35, color: '#2196F3', completado: false },
-    { id: '4', nombre: 'María Sánchez', edad: 28, color: '#FFD700', completado: false },
-  ]);
+  const toggleNotifications = () => setNotifications((previousState) => !previousState);
+  const toggleDarkMode = () => setDarkMode((previousState) => !previousState);
+  const toggleLanguage = () => setLanguage((prevLang) => (prevLang === 'es' ? 'en' : 'es'));
 
-  const toggleCompletion = (id: string) => {
-    setRegistros((prevRegistros) =>
-      prevRegistros.map((registro) =>
-        registro.id === id ? { ...registro, completado: !registro.completado } : registro
-      )
-    );
+  const resetApp = () => {
+    // Aquí puedes añadir la lógica para restablecer la app (ejemplo, limpiar el almacenamiento local)
+    Alert.alert('Restablecer', 'La aplicación ha sido restablecida');
   };
-
-  const renderItem = ({ item }: { item: Registro }) => (
-    <View
-      style={[
-        styles.item,
-        { borderColor: item.completado ? '#FF6347' : '#4CAF50' }, 
-      ]}
-    >
-      <Text style={[styles.text, item.completado && styles.completed]}>
-        Nombre: {item.nombre}
-      </Text>
-      <Text style={[styles.text, item.completado && styles.completed]}>
-        Edad: {item.edad}
-      </Text>
-      <Switch
-        value={item.completado}
-        onValueChange={() => toggleCompletion(item.id)}
-        trackColor={{ false: '#767577', true: '#767577' }} // Color de fondo del switch
-        style={styles.switch}
-      />
-    </View>
-  );
 
   return (
     <View style={styles.container}>
-      <FlatList
-        data={registros}
-        renderItem={renderItem}
-        keyExtractor={(item) => item.id}
-      />
+      <Text style={styles.title}>Configuraciones</Text>
+
+      {/* Configuración de Notificaciones */}
+      <View style={styles.settingRow}>
+        <Text style={styles.settingLabel}>Notificaciones</Text>
+        <Switch value={notifications} onValueChange={toggleNotifications} />
+      </View>
+
+      {/* Configuración de Modo Oscuro */}
+      <View style={styles.settingRow}>
+        <Text style={styles.settingLabel}>Modo Oscuro</Text>
+        <Switch value={darkMode} onValueChange={toggleDarkMode} />
+      </View>
+
+      {/* Configuración de Idioma */}
+      <View style={styles.settingRow}>
+        <Text style={styles.settingLabel}>Idioma</Text>
+        <Button title={`Cambiar a ${language === 'es' ? 'Inglés' : 'Español'}`} onPress={toggleLanguage} />
+      </View>
+
+      {/* Botón de Restablecer */}
+      <View style={styles.resetButton}>
+        <Button title="Restablecer aplicación" onPress={resetApp} color="#d9534f" />
+      </View>
     </View>
   );
-}
+};
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingTop: 50,
-    backgroundColor: '#f4f4f4',
-  },
-  item: {
     padding: 20,
-    borderWidth: 2, 
-    borderRadius: 8, 
-    marginBottom: 10,
-    width: '90%',
+    backgroundColor: '#fff',
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 20,
+    textAlign: 'center',
+  },
+  settingRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    marginBottom: 20,
   },
-  text: {
-    fontSize: 16,
+  settingLabel: {
+    fontSize: 18,
+    color: '#333',
   },
-  completed: {
-    textDecorationLine: 'line-through',
-    color: '#888',
-  },
-  switch: {
-    marginLeft: 10,
+  resetButton: {
+    marginTop: 30,
   },
 });
+
+export default SettingsScreen;
